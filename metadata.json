@@ -1,0 +1,5 @@
+{
+  "name": "MindVault",
+  "description": "A categorized markdown notes and links manager with support for custom categories and date tracking.",
+  "requestFramePermissions": []
+}

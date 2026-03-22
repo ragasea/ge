@@ -1,0 +1,82 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: notes
+    // Document ID: auto-generated
+    // Fields:
+    //   - title: string (required, 1-200 chars)
+    //   - content: string (required, 1-10000 chars)
+    //   - categoryId: string (required)
+    //   - createdAt: timestamp (required)
+    //   - userId: string (required, must match auth.uid)
+    //
+    // Collection: categories
+    // Document ID: auto-generated
+    // Fields:
+    //   - name: string (required, 1-50 chars)
+    //   - userId: string (required, must match auth.uid)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.userId;
+    }
+
+    function isValidNote(data) {
+      return data.keys().hasAll(['title', 'content', 'categoryId', 'createdAt', 'userId']) &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 200 &&
+             data.content is string && data.content.size() >= 1 && data.content.size() <= 10000 &&
+             data.categoryId is string &&
+             data.createdAt is timestamp &&
+             data.userId == request.auth.uid;
+    }
+
+    function isValidCategory(data) {
+      return data.keys().hasAll(['name', 'userId']) &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 50 &&
+             data.userId == request.auth.uid;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /notes/{noteId} {
+      allow read: if isDocOwner();
+      allow create: if isAuthenticated() && isValidNote(request.resource.data);
+      allow update: if isDocOwner() && isValidNote(request.resource.data) && 
+                      request.resource.data.userId == resource.data.userId &&
+                      request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isDocOwner();
+    }
+
+    match /categories/{categoryId} {
+      allow read: if isDocOwner();
+      allow create: if isAuthenticated() && isValidCategory(request.resource.data);
+      allow update: if isDocOwner() && isValidCategory(request.resource.data) &&
+                      request.resource.data.userId == resource.data.userId;
+      allow delete: if isDocOwner();
+    }
+
+    match /test/connection {
+      allow read: if true;
+    }
+  }
+}

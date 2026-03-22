@@ -1,0 +1,59 @@
+{
+  "entities": {
+    "Note": {
+      "title": "Note",
+      "description": "A markdown note or link with category and date tracking.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "The title of the note."
+        },
+        "content": {
+          "type": "string",
+          "description": "The markdown content of the note."
+        },
+        "categoryId": {
+          "type": "string",
+          "description": "The ID of the category this note belongs to."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the note was created."
+        },
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who owns this note."
+        }
+      },
+      "required": ["title", "content", "categoryId", "createdAt", "userId"]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "A user-defined category for notes.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the category."
+        },
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who owns this category."
+        }
+      },
+      "required": ["name", "userId"]
+    }
+  },
+  "firestore": {
+    "/notes/{noteId}": {
+      "schema": "Note",
+      "description": "Collection of user notes."
+    },
+    "/categories/{categoryId}": {
+      "schema": "Category",
+      "description": "Collection of user-defined categories."
+    }
+  }
+}
